@@ -75,7 +75,7 @@ def getSetpointConfig(_idx):
     _config.append(_configdata['step'])
     _config.append(_configdata['min'])
     _config.append(_configdata['max'])
-    print(_config)
+    #print(_config)
     return _config
 
 def getIDXByName(name, _devices):
@@ -141,7 +141,7 @@ def getIDXByType(_devices):
 
 def getIDXRooms(_devices):
     print('getIDXRooms(_devices)')
-    print(_devices)
+    #print(_devices)
     _idx_sug = {'idx': '', 'suggestions': [], 'type': '', 'levels': []}
     for i in _devices:
         if i['Devices'] > 0:
@@ -150,8 +150,6 @@ def getIDXRooms(_devices):
             _sugObject['type'] = 'room'
             _sugObject['Name'] = i['Name']
             _idx_sug['suggestions'].append(_sugObject)
-    print('-------')
-    print(_idx_sug)
     return _idx_sug
 
 def getNameByIDX(dev, _devices):
@@ -218,7 +216,7 @@ def getDataByIDX(_data_idx, _type):
 
     _name = ''
     _name = _IDXData['Name'].title()
-    print('name: ' + _name + ', type: ' + _type + ', status: ' + _status)
+    #print('name: ' + _name + ', type: ' + _type + ', status: ' + _status)
 
     return _name, _status
 
@@ -226,7 +224,7 @@ def getDataByIDX(_data_idx, _type):
 def on_callback_query(msg):
     query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
     print('on_callback_query(msg)')
-    print(query_data)
+    #print(query_data)
     if query_data.lower().split(' ')[0] == '/switch':
         bot_text = ''
         runUrl = url + '/json.htm?type=command&param=switchlight&idx=' + query_data.lower().split(' ')[1] + '&switchcmd=' + query_data.lower().split(' ')[2].title().replace('Level=', 'level=').strip()
@@ -279,8 +277,6 @@ def on_callback_query(msg):
            try:
               _roomdevices = getDomoticzUrl(runUrl)['result']
            except KeyError:
-               #bot.sendMessage(int(query_data.split(' ')[3]), 'Error No room Device found')
-               #_roomdevices = {'Devices': 0, 'Name': '', 'Order': '', 'idx': }
                _roomdevices = {}
             
            _idx = getIDXByType(_roomdevices)
@@ -593,7 +589,6 @@ def handle(msg):
                                    counter += 1
                                else:
                                    multipleMark.append(i)
-                                   print(multipleMark)
                                    send = False
                            if send == False:
                                bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
