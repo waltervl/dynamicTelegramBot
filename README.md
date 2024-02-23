@@ -1,6 +1,7 @@
 # dynamicTelegramBot
 dynamic telegram bot for domoticz written in Python 3
-You can use it by installing telepot and ConfigParser using: pip install telepot-x ConfigParser
+You can use it by installing telepot and ConfigParser using: 
+  pip install telepot-x ConfigParser
 
 To secure the bot you must place usernames or first_names in the array unames:
 unames = ['username1', 'username2'] 
