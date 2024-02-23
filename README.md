@@ -1,8 +1,8 @@
 # dynamicTelegramBot
 dynamic telegram bot for domoticz written in Python 3
-You can use it by installing telepot and ConfigParser using: pip install telepot ConfigParser
+You can use it by installing telepot and ConfigParser using: pip install telepot-x ConfigParser
 
-To secure the bot you must place usernames in the array unames:
+To secure the bot you must place usernames or first_names in the array unames:
 unames = ['username1', 'username2'] 
 by using this the bot will only react to the users which are in the array.
 
@@ -18,14 +18,16 @@ So for example if you have 2 switches called livingroomSpeaker, livingroomLights
 
 If you type livingroomspeaker to the bot it will come with the switch and asks you what you want to do (on or off)
 
-but if you type living the bot will make an suggestions and asks if you meant one of the following devices and comes with livingroomSpeaker and livingroomLights. 
+but if you type living the bot will make an suggestions and asks if you meant one of the following devices and comes with livingroomSpeaker and livingroomLights.
+
+When typing /start a menu will appear instead of the norml the keyboard where you can chose to show all favorite devices on the dashboard or switch to show all your Rooms or show the default device tabs (switches, group/scene, utility, weather). Then you can show all devices of the selected room or device tab.
 
 # First run
 You need to start the bot manually for the first time because it will ask you for information to create an config:
 - url: <domoticz_url> (http://192.168.1.2:8080)
-- bot_token
+- bot_token (use bot @get_id_bot to get the bot token)
 - unames (usernames seperated by an comma): user1, user2, user3
-- car_location_idx: can be an idx number of an text utility which as the lat,long in it.
+
 after that an config.ini will be created and it can be run from the systemd service.
 
 # Systemd script
@@ -61,5 +63,4 @@ Selector Switch<br>
 Suggestions<br>
 ![alt text](https://github.com/squandor/dynamicTelegramBot/blob/master/examples/suggestions.png?raw=true)
 
-Car Location<br>
-![alt text](https://github.com/squandor/dynamicTelegramBot/blob/master/examples/car_getLocation.png?raw=true)
+
