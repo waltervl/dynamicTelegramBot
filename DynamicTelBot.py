@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ## Created by Squandor for python3
 ## Updated by Waltervl for Domoticz 2023.2 and up
 ## Updated by Waltervl to enhance functionality
@@ -8,7 +9,9 @@ import random
 import datetime
 import telepot
 import urllib
+import urllib.request
 import urllib3
+import socket
 import json
 import re
 import base64
@@ -38,7 +41,7 @@ else:
     Config.write(cfgfile)
     cfgfile.close()
 ##################################
-
+socket.setdefaulttimeout(10)
 
 def getRandom():
    return randint(0, 9)
@@ -152,6 +155,20 @@ def getIDXRooms(_devices):
             _idx_sug['suggestions'].append(_sugObject)
     return _idx_sug
 
+def getCameras(_devices):
+    print('getCameras(_devices)')
+    #print(_devices)
+    _idx_sug = {'idx': '', 'suggestions': [], 'type': '', 'levels': []}
+    for i in _devices:
+            _sugObject = {}
+            _sugObject['idx'] = i['idx']
+            _sugObject['type'] = 'camera'
+            _sugObject['Address'] = i['Address']
+            _sugObject['Name'] = i['Name']
+            _sugObject['ImageURL'] = i['ImageURL']            
+            _idx_sug['suggestions'].append(_sugObject)
+    return _idx_sug
+
 def getNameByIDX(dev, _devices):
     print('getNameByIDX(dev, _devices)')
     #print(_devices)
@@ -207,6 +224,10 @@ def getDataByIDX(_data_idx, _type):
         _status = 'Current ' + _IDXData['Usage'] + ', Today ' + _IDXData['CounterToday'] + ', Total ' + _IDXData['Data']
     elif _type.lower() == 'gas':
         _status = 'Today ' + _IDXData['CounterToday'] + ', Total ' + _IDXData['Data']
+    elif _type.lower() == 'rainbyrate':
+        _status = 'Current ' + _IDXData['RainRate'] + ' mm/h , Today ' + _IDXData['Rain'] + ' mm'
+    elif _type.lower() == 'tfa':
+        _status = 'Speed ' + _IDXData['Speed'] + 'km/h, Direction ' + _IDXData['DirectionStr'] + ', Gusts ' + _IDXData['Gust'] + ' km/h'
     else:
           try:
             _status = _IDXData['Status'].title()
@@ -273,7 +294,7 @@ def on_callback_query(msg):
     elif query_data.lower().split(' ')[0] == '/room':
            print('callback room')
            bot_text = ''
-           runUrl = url + '/json.htm?type=devices&plan=' + query_data.lower().split(' ')[1]
+           runUrl = url + '/json.htm?type=command&param=getdevices&plan=' + query_data.lower().split(' ')[1]
            try:
               _roomdevices = getDomoticzUrl(runUrl)['result']
            except KeyError:
@@ -294,7 +315,8 @@ def on_callback_query(msg):
                               bot.sendMessage(int(query_data.split(' ')[3]), _name + ': ' + _state + '.', reply_markup=None)
                        
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
-                       bot.sendMessage(int(query_data.split(' ')[3]), '** Switches, Scenes and Groups in Room **')
+                       if len(_arr) > 0:
+                           bot.sendMessage(int(query_data.split(' ')[3]), '** Switches, Scenes and Groups in Room **')
                        if len(_arr) > 3:
                            counter= 0
                            multipleMark = []
@@ -310,8 +332,8 @@ def on_callback_query(msg):
                                    send = False
                            if send == False:
                                bot.sendMessage(int(query_data.split(' ')[3]), '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
-                       else:
-                           bot.sendMessage(int(query_data.split(' ')[3]), 'Room', reply_markup=markup_dyn)
+                       elif  1 <= len(_arr) <= 3:
+                           bot.sendMessage(int(query_data.split(' ')[3]), '-', reply_markup=markup_dyn)
            else:
              bot.sendMessage(int(query_data.split(' ')[3]), 'No room Device found')
 
@@ -418,9 +440,12 @@ def handle(msg):
    global url, unames, car_location_idx
    chat_id = msg['chat']['id']
    command = msg['text']
-   user = msg['from']['first_name']
+   try:
+       user = msg['from']['username']
+   except KeyError: 
+	   user = msg['from']['first_name']
    markup_main = ReplyKeyboardMarkup(keyboard=[['Dashboard'], ['Device Tabs', 'Rooms']],one_time_keyboard=False, resize_keyboard=True)
-   markup_device_tabs = ReplyKeyboardMarkup(keyboard=[['Switches','Grp Scenes','Temperature'], ['Utility','Weather'], ['Back']], one_time_keyboard=False, resize_keyboard=True)
+   markup_device_tabs = ReplyKeyboardMarkup(keyboard=[['Switches','Grp Scenes','Temperature'], ['Utility','Weather','Cameras'], ['Back']], one_time_keyboard=False, resize_keyboard=True)
    markup_dyn = None
    run = False
    if user.lower() in unames:
@@ -477,7 +502,6 @@ def handle(msg):
            if len(_idx['suggestions']) > 0:
                        print('suggestions switches')
                        bot.sendMessage(chat_id, '** Switches/Lights/Sensors read only**')
-                       #print(_idx['suggestions'])
                        _arr = []
                        for i in _idx['suggestions']:
                            if i['type'].lower() in _switchTypes:
@@ -519,7 +543,6 @@ def handle(msg):
                            _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + str(chat_id)))
 
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
-                       #bot.sendMessage(chat_id, 'Dashboard')
                        if len(_arr) > 3:
                            counter = 0
                            multipleMark = []
@@ -539,6 +562,29 @@ def handle(msg):
                            bot.sendMessage(chat_id, 'All Group/Scene Devices', reply_markup=markup_dyn)
            else:
              bot.sendMessage(chat_id, 'No Group/Scene Device found')
+       
+       elif command.lower() == 'cameras':
+           _cameras = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras')['result']
+           _idx = getCameras(_cameras)
+           if len(_idx['suggestions']) > 0:
+                       print('suggestions camera')
+                       #print(_idx['suggestions'])
+                       _arr = []
+                       for i in _idx['suggestions']:
+                              _name = i['Name']
+                              _address = i['Address']
+                              _imageurl = i['ImageURL']
+                              bot.sendMessage(chat_id, _name, reply_markup=None)
+                              _url = 'http://'+_address+_imageurl
+                              _file_name = 'camera0'+i['idx']+'.jpg'
+                              try:
+                                  urllib.request.urlretrieve(_url, _file_name)
+                                  bot.sendPhoto(chat_id, open(_file_name, 'rb') )
+                              except timeout:
+                                  bot.sendMessage(chat_id, 'timeout error on: '+_name, reply_markup=None)   
+           else:
+             bot.sendMessage(chat_id, 'No cameras found')
+       
        elif command.lower() == 'temperature':
            _temps = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=temp&used=true')['result']
            _idx = getIDXByType(_temps)
@@ -766,5 +812,11 @@ MessageLoop(bot, {'chat': handle,
                   'callback_query': on_callback_query}).run_as_thread()
 print('I am listening...')
 
-while 1:
-    time.sleep(10)
+while True:
+	try:
+		self.bot.sendMessage(chat_id, message, **kwargs)
+		break
+	except telepot.exception.TelegramError as e:
+		raise e
+	except Exception as e:
+		time.sleep(2) # wait 2 more second to send again
