@@ -21,6 +21,11 @@ from telepot.loop import MessageLoop
 from telepot.namedtuple import ReplyKeyboardMarkup
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from collections import Counter
+import telepot.api
+
+telepot.api._pools = {
+    'default': urllib3.PoolManager(num_pools=3, maxsize=10, retries=6, timeout=20),
+}
 
 ########### Config ###############
 Config = ConfigParser.ConfigParser()
@@ -339,16 +344,16 @@ def on_callback_query(msg):
 
     elif query_data.lower().split(' ')[0] == '/suggestion':
         print('callback suggestion')
-        #print(query_data.lower().split(' ')[2])
+        print(query_data.lower())
         markup_dyn = None
         _many = False
         _utility = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=utility&used=true')['result']
         _utilityTypes = sorted(Counter(x['SubType'].lower() for x in _utility if 'SubType' in x)) + sorted(Counter(x['Type'].lower() for x in _utility if 'Type' in x))
         _temps = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=temp&used=true')['result']
         _tempTypes = sorted(Counter(x['SubType'].lower() for x in _temps if 'SubType' in x)) + sorted(Counter(x['Type'].lower() for x in _temps if 'Type' in x))
-        _switchTypes=['on_off', 'dimmer', 'blinds_percentage']
+        #_switchTypes=['on_off', 'dimmer', 'blinds_percentage']
         #print(_switchTypes)
-        if query_data.lower().split(' ')[2] == 'on_off':
+        if query_data.lower().split(' ')[2] == 'on_off' or query_data.lower().split(' ')[2] == 'blinds':
             _callbackCommand = '/switch ' + query_data.lower().split(' ')[1]+ ' '
             markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text='On', callback_data=_callbackCommand + 'on'), InlineKeyboardButton(text='Off', callback_data=_callbackCommand + 'off')],
@@ -405,10 +410,28 @@ def on_callback_query(msg):
             markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
             if len(_arr) > 3:
                 _many = True
-        elif query_data.lower().split(' ')[2] == 'dimmer':
+        elif query_data.lower().split(' ')[2] == 'dimmer' or query_data.lower().split(' ')[2] == 'blinds_percentage':
             _arr = []
             _callbackCommand = '/switch ' + query_data.lower().split(' ')[1] + ' '
             _dimmerlevels = ['On', 'on'],['20', 'Set%20Level&level=20'],['50', 'Set%20Level&level=50'],['70', 'Set%20Level&level=70'],['100', 'Set%20Level&level=100'],['Off', 'off']
+            for i in _dimmerlevels:
+                _arr.append(
+                InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
+                )
+            markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
+        elif query_data.lower().split(' ')[2] == 'blinds_+_stop':
+            _arr = []
+            _callbackCommand = '/switch ' + query_data.lower().split(' ')[1] + ' '
+            _dimmerlevels = ['Open', 'open'],['Stop', 'stop'],['Close', 'close'],['20', 'Set%20Level&level=20'],['50', 'Set%20Level&level=50'],['70', 'Set%20Level&level=70'],['100', 'Set%20Level&level=100']
+            for i in _dimmerlevels:
+                _arr.append(
+                InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
+                )
+            markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
+        elif query_data.lower().split(' ')[2] == 'venetian_blinds_us' or query_data.lower().split(' ')[2] == 'venetian_blinds_eu':
+            _arr = []
+            _callbackCommand = '/switch ' + query_data.lower().split(' ')[1] + ' '
+            _dimmerlevels = ['Open', 'open'],['Stop', 'stop'],['Close', 'close']
             for i in _dimmerlevels:
                 _arr.append(
                 InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
@@ -424,7 +447,7 @@ def on_callback_query(msg):
                     bot.sendMessage(int(query_data.split(' ')[3]), 'SET:', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                     multipleMark[:] = []
                     multipleMark.append(i)
-                    _send = True
+                    _send = False
                     counter += 1
                 else:
                     multipleMark.append(i)
@@ -466,7 +489,7 @@ def handle(msg):
                        #print(_idx['suggestions'])
                        _arr = []
                        for i in _idx['suggestions']:
-                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10']
+                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop']
                            if i['type'].lower() in _settypes:
                                _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + str(chat_id)))
                            else:
@@ -483,7 +506,7 @@ def handle(msg):
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
+                                   send = False
                                    counter += 1
                                else:
                                    multipleMark.append(i)
@@ -498,7 +521,7 @@ def handle(msg):
        elif command.lower() == 'switches':
            _switches = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=light&used=true')['result']
            _idx = getIDXByType(_switches)
-           _switchTypes=['on_off', 'selector', 'dimmer', 'blinds_percentage']
+           _switchTypes=['on_off', 'selector', 'dimmer', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop']
            if len(_idx['suggestions']) > 0:
                        print('suggestions switches')
                        bot.sendMessage(chat_id, '** Switches/Lights/Sensors read only**')
@@ -513,15 +536,13 @@ def handle(msg):
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
                        bot.sendMessage(chat_id, '** Switches/Lights **')
                        if len(_arr) > 3:
-                           counter = 0
                            multipleMark = []
                            for i in _arr:
                                if len(multipleMark) == 3:
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
-                                   counter += 1
+                                   send = False
                                else:
                                    multipleMark.append(i)
                                    send = False
@@ -551,7 +572,7 @@ def handle(msg):
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
+                                   send = False
                                    counter += 1
                                else:
                                    multipleMark.append(i)
@@ -631,7 +652,7 @@ def handle(msg):
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
+                                   send = False
                                    counter += 1
                                else:
                                    multipleMark.append(i)
@@ -667,7 +688,7 @@ def handle(msg):
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
+                                   send = False
                                    counter += 1
                                else:
                                    multipleMark.append(i)
@@ -693,7 +714,7 @@ def handle(msg):
                if _idx['idx'] != '':
                    print('_idx[idx]')
                    print(_idx['idx'] + ' , ' + _idx['type'])
-                   _switchTypes = ['on_off', 'blinds_percentage', 'x10']
+                   _switchTypes = ['on_off', 'blinds', 'x10']
                    if _idx['type'].lower() in _switchTypes:
                        _callbackCommand = '/switch ' + _idx['idx'] + ' '
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
@@ -729,10 +750,32 @@ def handle(msg):
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
                        _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
                        bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
-                   elif _idx['type'].lower() == 'dimmer':
+                   elif _idx['type'].lower() == 'dimmer' or _idx['type'].lower() == 'blinds_percentage':
                        _arr = []
                        _callbackCommand = '/switch ' + _idx['idx'] + ' '
                        _dimmerlevels = ['On', 'on'],['20', 'Set%20Level&level=20'],['50', 'Set%20Level&level=50'],['70', 'Set%20Level&level=70'],['100', 'Set%20Level&level=100'],['Off', 'off']
+                       for i in _dimmerlevels:
+                           _arr.append(
+                           InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
+                           )
+                       markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
+                       _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
+                       bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
+                   elif _idx['type'].lower() == 'blinds_+_stop':
+                       _arr = []
+                       _callbackCommand = '/switch ' + _idx['idx'] + ' '
+                       _dimmerlevels = ['Open', 'open'],['Stop', 'stop'],['Close', 'close'],['20', 'Set%20Level&level=20'],['50', 'Set%20Level&level=50'],['70', 'Set%20Level&level=70'],['100', 'Set%20Level&level=100']
+                       for i in _dimmerlevels:
+                           _arr.append(
+                           InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
+                           )
+                       markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
+                       _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
+                       bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
+                   elif _idx['type'].lower() == 'venetian_blinds_us' or _idx['type'].lower() == 'venetian_blinds_eu':
+                       _arr = []
+                       _callbackCommand = '/switch ' + _idx['idx'] + ' '
+                       _dimmerlevels = ['Open', 'open'],['Stop', 'stop'],['Close', 'close']
                        for i in _dimmerlevels:
                            _arr.append(
                            InlineKeyboardButton(text=i[0], callback_data=_callbackCommand + i[1])
@@ -772,7 +815,7 @@ def handle(msg):
                        #print(_idx['suggestions'])
                        _arr = []
                        for i in _idx['suggestions']:
-                           _settypes = ['on_off', 'selector', 'dimmer', 'group','scene','setpoint','x10','room']
+                           _settypes = ['on_off', 'selector', 'dimmer', 'group','scene','setpoint','x10','room','blinds_percentage','venetian_blinds_us','venetian_blinds_eu','blinds_+_stop']
                            if i['type'].lower() in _settypes:
                                _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + str(chat_id)))
                            else:
@@ -789,7 +832,7 @@ def handle(msg):
                                    bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
                                    multipleMark[:] = []
                                    multipleMark.append(i)
-                                   send = True
+                                   send = False
                                    counter += 1
                                else:
                                    multipleMark.append(i)
