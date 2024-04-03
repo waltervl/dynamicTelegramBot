@@ -64,12 +64,17 @@ sudo systemctl status messagebot.service
 
 # Examples:<br>
 Switch<br>
-![alt text](https://github.com/squandor/dynamicTelegramBot/blob/master/examples/example_switch.png?raw=true)
+![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112037-099.png?raw=true)
 
-Selector Switch<br>
-![alt text](https://github.com/squandor/dynamicTelegramBot/blob/master/examples/selector_switch.png?raw=true)
+Dashboard<br>
+![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112114-551.png?raw=true)
 
-Suggestions<br>
-![alt text](https://github.com/squandor/dynamicTelegramBot/blob/master/examples/suggestions.png?raw=true)
+Suggestion<br>
+![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112644-379.png?raw=true)
 
+Cameras<br>
+![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-111953-857.png?raw=true)
+
+Rooms<br>
+![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112217-349.png?raw=true)
 
