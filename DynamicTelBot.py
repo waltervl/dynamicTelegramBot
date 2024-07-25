@@ -98,8 +98,10 @@ def getIDXByName(name, _devices):
                 _idx['type'] = i['SwitchType'].replace(' ', '_').replace('/', '_')
             elif 'SubType' in i:
                 _idx['type'] = i['SubType'].replace(' ', '_')
-            else:
+            elif 'Type' in i:
                 _idx['type'] = i['Type'].replace(' ', '_')
+            else:
+                _idx['type'] = 'camera'
             if _idx['type'].lower() == 'selector':
                 _idx['levels'] = getSelectorNames(i['idx'])
             elif _idx['type'].lower() == 'setpoint':
@@ -112,8 +114,10 @@ def getIDXByName(name, _devices):
                 _sugObject['type'] = i['SwitchType'].replace(' ', '_').replace('/', '_')
             elif 'SubType' in i:
                 _sugObject['type'] = i['SubType'].replace(' ', '_')
-            else:
+            elif 'Type' in i:
                 _sugObject['type'] = i['Type'].replace(' ', '_')
+            else:
+                _sugObject['type'] = 'camera'
             _sugObject['Name'] = i['Name']
             if _sugObject['type'].lower() == 'selector':
                 _sugObject['levels'] = getSelectorNames(i['idx'])
@@ -206,16 +210,18 @@ def getDataByIDX(_data_idx, _type):
     #print(_devices)
     if _type.lower() == 'scene' or _type.lower() == 'group':
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getscenes&rid=' + _data_idx)['result'][0]
+    elif _type.lower() == 'camera' :
+        _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras&rid=' + _data_idx)['result'][0]
     else:
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&rid=' + _data_idx)['result'][0]
-    #print(_IDXData)
-    _type = ''
-    if 'SwitchType' in _IDXData:
-        _type = _IDXData['SwitchType'].replace(' ', '_').replace('/', '_')
-    elif 'SubType' in _IDXData:
-       _type = _IDXData['SubType'].replace(' ', '_')
-    else:
-       _type = _IDXData['Type'].replace(' ', '_')
+    print(_IDXData)
+    #_type = ''
+    #if 'SwitchType' in _IDXData:
+    #    _type = _IDXData['SwitchType'].replace(' ', '_').replace('/', '_')
+    #elif 'SubType' in _IDXData:
+    #   _type = _IDXData['SubType'].replace(' ', '_')
+    #else:
+    #   _type = _IDXData['Type'].replace(' ', '_')
     _status = ''
     if _type.lower() == 'selector':
         _stateInt = _IDXData['Level']
@@ -233,6 +239,8 @@ def getDataByIDX(_data_idx, _type):
         _status = 'Current ' + _IDXData['RainRate'] + ' mm/h , Today ' + _IDXData['Rain'] + ' mm'
     elif _type.lower() == 'tfa':
         _status = 'Speed ' + _IDXData['Speed'] + 'km/h, Direction ' + _IDXData['DirectionStr'] + ', Gusts ' + _IDXData['Gust'] + ' km/h'
+    elif _type.lower() == 'camera':
+        _status = 'Use camera devices button to get all cameras'
     else:
           try:
             _status = _IDXData['Status'].title()
@@ -312,7 +320,7 @@ def on_callback_query(msg):
                        #print(_idx['suggestions'])
                        _arr = []
                        for i in _idx['suggestions']:
-                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10']
+                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop', 'push_on_button']
                            if i['type'].lower() in _settypes:
                                _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + query_data.split(' ')[3]))
                            else:
@@ -365,6 +373,11 @@ def on_callback_query(msg):
             ])
         elif query_data.lower().split(' ')[2] == 'scene':
             _callbackCommand = '/group ' + query_data.lower().split(' ')[1]+ ' '
+            markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text='On', callback_data=_callbackCommand + 'on')],
+            ])
+        elif query_data.lower().split(' ')[2] == 'push_on_button':
+            _callbackCommand = '/switch ' + query_data.lower().split(' ')[1]+ ' '
             markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text='On', callback_data=_callbackCommand + 'on')],
             ])
@@ -489,7 +502,7 @@ def handle(msg):
                        #print(_idx['suggestions'])
                        _arr = []
                        for i in _idx['suggestions']:
-                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop']
+                           _settypes = ['on_off', 'dimmer', 'group','scene','setpoint','x10', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop', 'push_on_button']
                            if i['type'].lower() in _settypes:
                                _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + str(chat_id)))
                            else:
@@ -521,7 +534,7 @@ def handle(msg):
        elif command.lower() == 'switches':
            _switches = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=light&used=true')['result']
            _idx = getIDXByType(_switches)
-           _switchTypes=['on_off', 'selector', 'dimmer', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop']
+           _switchTypes=['on_off', 'selector', 'dimmer', 'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage', 'blinds_+_stop', 'push_on_button']
            if len(_idx['suggestions']) > 0:
                        print('suggestions switches')
                        bot.sendMessage(chat_id, '** Switches/Lights/Sensors read only**')
@@ -706,10 +719,11 @@ def handle(msg):
                _groups = getDomoticzUrl(url + '/json.htm?type=command&param=getscenes')['result']
                _temps = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=temp&used=true')['result']
                _utility = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=utility&used=true')['result']
+               _cameras = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras')['result']
                _utilityTypes = sorted(Counter(x['SubType'].lower().replace(' ', '_').replace('/', '_') for x in _utility if 'SubType' in x)) + sorted(Counter(x['Type'].lower().replace(' ', '_').replace('/', '_') for x in _utility if 'Type' in x))
                _tempTypes = sorted(Counter(x['SubType'].lower().replace(' ', '_').replace('/', '_') for x in _temps if 'SubType' in x)) + sorted(Counter(x['Type'].lower().replace(' ', '_').replace('/', '_') for x in _temps if 'Type' in x))
                print('command: ' +command.lower())
-               _devices = _switches + _groups + _utility + _temps
+               _devices = _switches + _groups + _utility + _temps + _cameras
                _idx = getIDXByName(command.lower(), _devices)
                if _idx['idx'] != '':
                    print('_idx[idx]')
@@ -731,6 +745,13 @@ def handle(msg):
                        bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
                    elif _idx['type'].lower() == 'scene':
                        _callbackCommand = '/group ' + _idx['idx'] + ' '
+                       markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
+                       [InlineKeyboardButton(text='On', callback_data=_callbackCommand + 'on')],
+                       ])
+                       _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
+                       bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
+                   elif _idx['type'].lower() == 'push_on_button':
+                       _callbackCommand = '/switch ' + _idx['idx'] + ' '
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[
                        [InlineKeyboardButton(text='On', callback_data=_callbackCommand + 'on')],
                        ])
@@ -811,19 +832,24 @@ def handle(msg):
                else:
                    if len(_idx['suggestions']) > 0:
                        print('handle suggestions')
-                       bot.sendMessage(chat_id, '** Found Sensor Devices **')
                        #print(_idx['suggestions'])
                        _arr = []
+                       Scounter= 0
+                       _settypes = ['on_off', 'selector', 'dimmer', 'group','scene','setpoint','x10','room','blinds_percentage','venetian_blinds_us','venetian_blinds_eu','blinds_+_stop', 'push_on_button']
                        for i in _idx['suggestions']:
-                           _settypes = ['on_off', 'selector', 'dimmer', 'group','scene','setpoint','x10','room','blinds_percentage','venetian_blinds_us','venetian_blinds_eu','blinds_+_stop']
                            if i['type'].lower() in _settypes:
                                _arr.append(InlineKeyboardButton(text=i['Name'], callback_data='/suggestion ' + i['idx'] + ' ' + i['type'] + ' ' + str(chat_id)))
                            else:
                               _name, _state = getDataByIDX(i['idx'],i['type'])
+                              if Scounter == 0: 
+                                 bot.sendMessage(chat_id, '** Found Sensor Devices **')
                               bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=None)
+                              Scounter += 1
                        
                        markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr])
-                       bot.sendMessage(chat_id, '** Switches, Setpoints and Scenes and Groups found devices **')
+                       if len(_arr) > 3:
+                           bot.sendMessage(chat_id, '** Found Switches and Setpoints **')
+                           
                        if len(_arr) > 3:
                            counter= 0
                            multipleMark = []
@@ -839,8 +865,8 @@ def handle(msg):
                                    send = False
                            if send == False:
                                bot.sendMessage(chat_id, '-', reply_markup=InlineKeyboardMarkup(inline_keyboard=[multipleMark]))
-                       else:
-                           bot.sendMessage(chat_id, 'End of search', reply_markup=markup_dyn)
+                       elif len(_arr) > 0 < 3:
+                           bot.sendMessage(chat_id, '** Found Switches and Setpoints **', reply_markup=markup_dyn)
                    else:
                        bot.sendMessage(chat_id, command.title() + ' device not found!')
            else:
