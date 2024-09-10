@@ -214,7 +214,7 @@ def getDataByIDX(_data_idx, _type):
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras&rid=' + _data_idx)['result'][0]
     else:
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&rid=' + _data_idx)['result'][0]
-    print(_IDXData)
+    #print(_IDXData)
     #_type = ''
     #if 'SwitchType' in _IDXData:
     #    _type = _IDXData['SwitchType'].replace(' ', '_').replace('/', '_')
@@ -352,7 +352,7 @@ def on_callback_query(msg):
 
     elif query_data.lower().split(' ')[0] == '/suggestion':
         print('callback suggestion')
-        print(query_data.lower())
+        #print(query_data.lower())
         markup_dyn = None
         _many = False
         _utility = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=utility&used=true')['result']
@@ -715,15 +715,19 @@ def handle(msg):
              
        else:
            if command.lower() != '':
-               _switches = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=light&used=true')['result']
+               _alldevices = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&used=true')['result']
+               #_switches = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=light&used=true')['result']
                _groups = getDomoticzUrl(url + '/json.htm?type=command&param=getscenes')['result']
                _temps = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=temp&used=true')['result']
                _utility = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=utility&used=true')['result']
                _cameras = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras')['result']
+               _weather = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&filter=weather&used=true')['result']
                _utilityTypes = sorted(Counter(x['SubType'].lower().replace(' ', '_').replace('/', '_') for x in _utility if 'SubType' in x)) + sorted(Counter(x['Type'].lower().replace(' ', '_').replace('/', '_') for x in _utility if 'Type' in x))
                _tempTypes = sorted(Counter(x['SubType'].lower().replace(' ', '_').replace('/', '_') for x in _temps if 'SubType' in x)) + sorted(Counter(x['Type'].lower().replace(' ', '_').replace('/', '_') for x in _temps if 'Type' in x))
+               _WeatherTypes = sorted(Counter(x['SubType'].lower().replace(' ', '_').replace('/', '_') for x in _weather if 'SubType' in x)) + sorted(Counter(x['Type'].lower().replace(' ', '_').replace('/', '_') for x in _weather if 'Type' in x))
+
                print('command: ' +command.lower())
-               _devices = _switches + _groups + _utility + _temps + _cameras
+               _devices = _alldevices + _groups + _cameras
                _idx = getIDXByName(command.lower(), _devices)
                if _idx['idx'] != '':
                    print('_idx[idx]')
@@ -827,8 +831,13 @@ def handle(msg):
                        markup_dyn = None
                        _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
                        bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
+                   elif _idx['type'].lower() in _WeatherTypes:
+                       _callbackCommand = '/weather ' + _idx['idx'] + ' '
+                       markup_dyn = None
+                       _name, _state = getDataByIDX(_idx['idx'], _idx['type'])
+                       bot.sendMessage(chat_id, _name + ': ' + _state + '.', reply_markup=markup_dyn)
                    else:
-                    bot.sendMessage(chat_id, 'No actien programmed for ' + command.lower() + '?', reply_markup=markup_dyn)
+                    bot.sendMessage(chat_id, 'No action programmed for ' + command.lower() + ' type ' + _idx['type'].lower()+ '?', reply_markup=markup_dyn)
                else:
                    if len(_idx['suggestions']) > 0:
                        print('handle suggestions')
