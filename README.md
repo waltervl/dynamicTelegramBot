@@ -9,13 +9,18 @@ unames = ['username1', 'username2']
 by using this the bot will only react to the users which are in the array.
 
 # What can it do?
-Using this bot you can ask him for an switch/scene/group/temperature/utility switch. 
+With this bot you can monitor and control your Domoticz devices outside your internal home network.
+When typing /start a menu will appear instead of the normal keyboard where you can choose to show all favorite devices on the dashboard or switch to show all your Rooms or show the default device tabs (switches, group/scene, utility, weather, cameras). Then you can show all devices of the selected room or device tab.
+
+Using this bot you can ask him for a switch/scene/group/temperature/utility switch. 
 After the bot found the device it will ask you what you want to do with it (on,off)
 
 If the device is an selector switch the bot will build special keyboard in telegram where you can find you're selector options from domoticz. 
 If the device is a sensor it will show only the status.
+For other devices like energy, temperature, weather it will show its status.
+For cameras it will show a snapshot of that camera.
 
-But sometimes you don't know the full name of the device or you forget an character, in that case the bot will look for devices that could be the device that you want and will come with suggestions. 
+But sometimes you don't know the full name of the device or you forget a character, in that case the bot will look for devices that could be the device that you want and will come with suggestions. 
 
 So for example if you have 2 switches called livingroomSpeaker, livingroomLights
 
@@ -23,7 +28,7 @@ If you type livingroomspeaker to the bot it will come with the switch and asks y
 
 but if you type living the bot will make an suggestions and asks if you meant one of the following devices and comes with livingroomSpeaker and livingroomLights.
 
-When typing /start a menu will appear instead of the normal keyboard where you can choose to show all favorite devices on the dashboard or switch to show all your Rooms or show the default device tabs (switches, group/scene, utility, weather). Then you can show all devices of the selected room or device tab.
+
 
 # First run
 You need to start the bot manually for the first time because it will ask you for information to create an config:
@@ -78,3 +83,6 @@ Cameras<br>
 Rooms<br>
 ![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112217-349.png?raw=true)
 
+# Known Issues
+After some time (hours) of not being in use the bot will reconnect to telegram. This will take around a minute. 
+So when you ask for a device after some time the bot will answer but then reconnects so a next command is not being processed for a minute or even skipped and needs to be resend.
