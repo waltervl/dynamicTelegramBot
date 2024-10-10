@@ -1,12 +1,5 @@
 # dynamicTelegramBot
-dynamic telegram bot for domoticz written in Python 3
-You can use it by installing telepot and ConfigParser using: 
-
-```  sudo pip3 install telepot-x ConfigParser```
-
-To secure the bot you must place usernames or first_names in the array unames:
-unames = ['username1', 'username2'] 
-by using this the bot will only react to the users which are in the array.
+Dynamic telegram bot for Domoticz written in Python 3
 
 # What can it do?
 With this bot you can monitor and control your Domoticz devices outside your internal home network.
@@ -28,15 +21,19 @@ If you type livingroomspeaker to the bot it will come with the switch and asks y
 
 but if you type living the bot will make an suggestions and asks if you meant one of the following devices and comes with livingroomSpeaker and livingroomLights.
 
-
+# Installation
+1. Prerequisites: Installing telepot-x and ConfigParser using: 
+```sudo pip3 install telepot-x ConfigParser```
+2. Download the file DynamicTelBot.py and store it somewhere on your system, eg /home/username/scripts/telegram/dynamicTelegramBot/DynamicTelBot.py
+3. Create a telegram bot to communicate with Domoticz, see for instructions for example https://www.domoticz.com/wiki/Telegram_Bot
 
 # First run
-You need to start the bot manually for the first time because it will ask you for information to create an config:
-- url: <domoticz_url> (http://192.168.1.2:8080)
-- bot_token (use bot @get_id_bot to get the bot token)
-- unames (usernames seperated by an comma): user1, user2, user3
+You need to start the bot manually (eg ```python3 DynamicTelBot.py```) for the first time because it will ask you for information to create a config.ini file:
+- url: <domoticz_url> (eg http://192.168.1.2:8080)
+- bot_token: (use bot @get_id_bot to get the bot token), see also https://www.domoticz.com/wiki/Telegram_Bot
+- unames: (Telegram usernames seperated by a comma: user1, user2, user3). By using this the bot will only react to the users which are in the array.
 
-after that an config.ini will be created and it can be run from the systemd service.
+After that an config.ini will be created and it can be run from the systemd service if needed.
 
 # Systemd script
 Thanks to so help someone made an easy service file so you can easy run the bot using the systemd service. 
@@ -51,7 +48,7 @@ Description=Telegram Bot for Domoticz After=multi-user.target
 [Service]
 Type=idle
 User=<username>
-ExecStart=/usr/bin/python /home/username/scripts/telegram/dynamicTelegramBot/squandorDynamicTelBot.py
+ExecStart=/usr/bin/python /home/username/scripts/telegram/dynamicTelegramBot/DynamicTelBot.py
 WorkingDirectory=/home/username/scripts/telegram/dynamicTelegramBot/
 [Install]
 WantedBy=multi-user.target
