@@ -214,6 +214,7 @@ def getDataByIDX(_data_idx, _type):
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getcameras&rid=' + _data_idx)['result'][0]
     else:
         _IDXData = getDomoticzUrl(url + '/json.htm?type=command&param=getdevices&rid=' + _data_idx)['result'][0]
+    #print(_data_idx, _type)
     #print(_IDXData)
     #_type = ''
     #if 'SwitchType' in _IDXData:
@@ -233,6 +234,8 @@ def getDataByIDX(_data_idx, _type):
         _status = _IDXData['Data'] + ' ' + _config[0]
     elif _type.lower() == 'kwh':
         _status = 'Current ' + _IDXData['Usage'] + ', Today ' + _IDXData['CounterToday'] + ', Total ' + _IDXData['Data']
+    elif _type.lower() == 'energy':
+        _status = 'Current Usage ' + _IDXData['Usage'] + ', Current Deliv ' + _IDXData['UsageDeliv'] + ', Today Usage ' + _IDXData['CounterToday'] + ', Today Deliv ' + _IDXData['CounterDelivToday'] + ', Total Usage ' + _IDXData['Counter'] + ' kWh, Total Deliv ' + _IDXData['CounterDeliv'] + ' kWh'
     elif _type.lower() == 'gas':
         _status = 'Today ' + _IDXData['CounterToday'] + ', Total ' + _IDXData['Data']
     elif _type.lower() == 'rainbyrate':
