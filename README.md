@@ -65,20 +65,16 @@ sudo systemctl status messagebot.service
 ```
 
 # Examples:<br>
-Switch<br>
-![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112037-099.png?raw=true)
 
-Dashboard<br>
-![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112114-551.png?raw=true)
+<img src="https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112037-099.png?raw=true" alt="Switch example" style="width:40%; height:auto;">
 
-Suggestion<br>
-![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112644-379.png?raw=true)
+<img src="https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112114-551.png?raw=true" alt="Dashboard example" style="width:40%; height:auto;">
 
-Cameras<br>
-![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-111953-857.png?raw=true)
+<img src="https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112644-379.png?raw=true" alt="Suggestion example" style="width:40%; height:auto;">
 
-Rooms<br>
-![alt text](https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112217-349.png?raw=true)
+<img src="https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-111953-857.png?raw=true" alt="Cameras example" style="width:40%; height:auto;">
+
+<img src="https://github.com/waltervl/dynamicTelegramBot/blob/master/screenshots/Screenshot_20240403-112217-349.png?raw=true" alt="Rooms example" style="width:40%; height:auto;">
 
 # Known Issues
 After some time (hours) of not being in use the bot will reconnect to telegram. This will take around a minute. 
