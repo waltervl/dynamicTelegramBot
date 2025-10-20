@@ -52,12 +52,28 @@ def getRandom():
    return randint(0, 9)
 
 def getDomoticzUrl(url):
-    http= urllib3.PoolManager()
+    http = urllib3.PoolManager()
     try:
-        _res = json.loads(http.request('GET', url).data.decode('utf-8'))
-    except:
-        _res = ''
-    return _res
+        # give explicit timeouts for connect/read
+        resp = http.request('GET', url, timeout=urllib3.Timeout(connect=5.0, read=10.0))
+        # If non-200, return a safe structure
+        if getattr(resp, 'status', None) and resp.status != 200:
+            print('getDomoticzUrl: HTTP', resp.status, 'for', url)
+            return {'status': 'ERR', 'result': []}
+        raw = resp.data.decode('utf-8') if resp.data is not None else ''
+        if not raw:
+            print('getDomoticzUrl: empty response for', url)
+            return {'status': 'ERR', 'result': []}
+        try:
+            return json.loads(raw)
+        except ValueError as e:
+            print('getDomoticzUrl: JSON decode error:', e, 'response:', raw)
+            return {'status': 'ERR', 'result': []}
+    except Exception as e:
+        # Catch network/timeouts/other exceptions and return a safe structure
+        print('getDomoticzUrl: request error for', url, ':', e)
+        return {'status': 'ERR', 'result': []}
+
 
 def getSelectorNames(_idx):
     print('getSelectorNames(_idx)')
