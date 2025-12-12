@@ -79,3 +79,6 @@ sudo systemctl status messagebot.service
 # Known Issues
 After some time (hours) of not being in use the bot will reconnect to telegram. This will take around a minute. 
 So when you ask for a device after some time the bot will answer but then reconnects so a next command is not being processed for a minute or even skipped and needs to be resend.
+# Thanks 
+This was originally a fork of this bot on python 2.7 Thanks for sqandor for creating this 
+https://github.com/squandor/dynamicTelegramBot
