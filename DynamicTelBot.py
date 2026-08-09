@@ -576,7 +576,7 @@ def handle_suggestion_callback(parts):
     _arr = build_action_buttons(parts[1], parts[2])
     markup_dyn = InlineKeyboardMarkup(inline_keyboard=[_arr]) if _arr else None
 
-    if _device_type in _utilityTypes and _device_type == 'setpoint':
+    if _device_type == 'setpoint':
         _many = len(_arr) > 3
     elif _device_type == 'selector':
         _many = len(_arr) > 3
@@ -668,7 +668,7 @@ def handle_scenes(chat_id):
     send_actionable_list(
         chat_id,
         _idx['suggestions'],
-        get_message_types(_groups),
+        set(['group', 'scene']),
         '/suggestion ',
         'All Group/Scene Devices',
         'No Group/Scene Device found',
