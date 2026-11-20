@@ -27,7 +27,7 @@ telepot.api._pools = {
 DOMOTICZ_HTTP = urllib3.PoolManager()
 DEFAULT_DOMOTICZ_RESPONSE = {'status': 'ERR', 'result': []}
 SETTABLE_TYPES = set([
-    'on_off', 'dimmer', 'group', 'scene', 'setpoint', 'x10',
+    'on_off', 'selector', 'dimmer', 'group', 'scene', 'setpoint', 'x10',
     'venetian_blinds_us', 'venetian_blinds_eu', 'blinds_percentage',
     'blinds_+_stop', 'push_on_button',
 ])
